@@ -13,12 +13,12 @@ if __name__ == "__main__":
     h=633
     pupa_folder = "Z:/data/LD/experiments/imaging/output/Automated_experiment/pupa_10"
     recordings = utils.get_ordered_recording_paths(pupa_folder)
+    temp_folder = "temp_frames_folder"
 
     #Start by getting the mask for the heart muscles from NMF of recording 40
     print("Starting the NMF on recording 40 for muscle mask extraction")
     recording_number = 40
     mkv_file_path = os.path.join(pupa_folder,f"{recordings[recording_number][1]}",f"{recordings[recording_number][1]}.mkv")
-    temp_folder = os.makedirs("./temp_frames", exist_ok=True)
     utils.extract_frames_from_mkv(mkv_path=mkv_file_path, temp_folder=temp_folder)
     print("Extraction of frames complete")
     frames = utils.load_frames_fast(frames_folder=temp_folder, delete_frames=True)
@@ -55,7 +55,6 @@ if __name__ == "__main__":
         recording_folder = os.path.join(pupa_folder, folder_name)
         mkv_file_path = os.path.join(recording_folder, f"{folder_name}.mkv")
         #extract frames from the video
-        temp_folder = os.makedirs("./temp_frames", exist_ok=True)
         utils.extract_frames_from_mkv(mkv_path=mkv_file_path, temp_folder=temp_folder)
         print("Extracted frames, saved to temp folder: ./temp_frames")
         #load frames and process them
