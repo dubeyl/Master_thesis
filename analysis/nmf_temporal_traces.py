@@ -47,7 +47,8 @@ if __name__ == "__main__":
     with open(f"control_masks.pkl", "wb") as f:
         pickle.dump([control_mask_12,control_mask_17,control_mask_19,control_mask_29], f)
     del no_min_frames
-
+    print("Extraction of masks complete")
+    print("Starting analysis of all recordings")
     #Apply NMF and get trace of heart muscles and control for all recordings
     for recording_number, folder_name in recordings:
         print(f"Analysing Recording Number: {recording_number}, Folder Name: {folder_name}")
