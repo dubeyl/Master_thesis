@@ -15,10 +15,12 @@ if __name__ == "__main__":
     recordings = utils.get_ordered_recording_paths(pupa_folder)
 
     #Start by getting the mask for the heart muscles from NMF of recording 40
+    print("Starting the NMF on recording 40 for muscle mask extraction")
     recording_number = 40
     mkv_file_path = os.path.join(pupa_folder,f"{recordings[recording_number][1]}",f"{recordings[recording_number][1]}.mkv")
     temp_folder = os.makedirs("./temp_frames", exist_ok=True)
     utils.extract_frames_from_mkv(mkv_path=mkv_file_path, temp_folder=temp_folder)
+    print("Extraction of frames complete")
     frames = utils.load_frames_fast(frames_folder=temp_folder, delete_frames=True)
     masked_frames = frames[:, y:y+h, x:x+w]
     del frames
@@ -28,6 +30,7 @@ if __name__ == "__main__":
     del temporal_frames
     no_min_frames = utils.remove_baseline(reduced_frames, clip =False)
     del reduced_frames
+    print("Processing of frames complete")
     #Apply NMF with 40 components, stop criterion at 5e-2
     components, W = utils.apply_nmf(no_min_frames, n_components=40, max_iter=1500, alpha_H=1.0, save=False, plot=False, temporal=False)
     otsu_mask_12 = cv2.threshold(components[11].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
