@@ -63,6 +63,7 @@ if __name__ == "__main__":
         frames = utils.load_frames_fast(frames_folder=temp_folder, delete_frames=True)
         print("Loaded frames shape:", frames.shape)
         masked_frames = frames[:, y:y+h, x:x+w]
+        del frames
         temporal_frames = utils.temporal_filter(masked_frames, HIGH_CUTOFF=30.0)
         print("Applied temporal filter to frames")
         del masked_frames
