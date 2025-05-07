@@ -38,13 +38,15 @@ if __name__ == "__main__":
     otsu_mask_19 = cv2.threshold(components[18].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     otsu_mask_29 = cv2.threshold(components[28].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     #save four masks with pickledump
-    with open(f"muscle_masks.pkl", "wb") as f:
+    muscle_path = os.path.join(pupa_folder,"muscle_masks.pkl")
+    with open(muscle_path, "wb") as f:
         pickle.dump([otsu_mask_12,otsu_mask_17,otsu_mask_19,otsu_mask_29], f)
     control_mask_12 = utils.make_ring_by_scaling(otsu_mask_12)
     control_mask_17 = utils.make_ring_by_scaling(otsu_mask_17)
     control_mask_19 = utils.make_ring_by_scaling(otsu_mask_19)
     control_mask_29 = utils.make_ring_by_scaling(otsu_mask_29)
-    with open(f"control_masks.pkl", "wb") as f:
+    control_path = os.path.join(pupa_folder, "control_masks.pkl")
+    with open(control_path, "wb") as f:
         pickle.dump([control_mask_12,control_mask_17,control_mask_19,control_mask_29], f)
     del no_min_frames
     print("Extraction of masks complete")
