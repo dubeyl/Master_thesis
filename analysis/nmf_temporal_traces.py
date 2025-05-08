@@ -24,30 +24,30 @@ if __name__ == "__main__":
     frames = utils.load_frames_fast(frames_folder=temp_folder, delete_frames=True)
     masked_frames = frames[:, y:y+h, x:x+w]
     del frames
-    temporal_frames = utils.temporal_filter(masked_frames, HIGH_CUTOFF=30.0)
+    reduced_frames = utils.reduce_frame(masked_frames, factor = 2)
     del masked_frames
-    reduced_frames = utils.reduce_frame(temporal_frames, factor = 2)
-    del temporal_frames
-    no_min_frames = utils.remove_baseline(reduced_frames, clip =False)
+    temporal_frames = utils.temporal_filter(reduced_frames, high_cutoff=10.0)
     del reduced_frames
+    no_min_frames = utils.remove_baseline(temporal_frames, clip =False)
+    del temporal_frames
     print("Processing of frames complete")
     #Apply NMF with 40 components, stop criterion at 5e-2
-    components, W = utils.apply_nmf(no_min_frames, n_components=40, max_iter=1500, alpha_H=1.0, save=False, plot=False, temporal=False)
-    otsu_mask_12 = cv2.threshold(components[11].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    otsu_mask_17 = cv2.threshold(components[16].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    otsu_mask_19 = cv2.threshold(components[18].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    otsu_mask_29 = cv2.threshold(components[28].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    components, W = utils.apply_nmf(no_min_frames, n_components=40, max_iter=500, alpha_H=1.0, save=False, plot=False, temporal=False)
+    otsu_mask_11 = cv2.threshold(components[11].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    otsu_mask_18 = cv2.threshold(components[18].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    otsu_mask_25 = cv2.threshold(components[25].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    otsu_mask_27 = cv2.threshold(components[27].astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     #save four masks with pickledump
     muscle_path = os.path.join(pupa_folder,"muscle_masks.pkl")
     with open(muscle_path, "wb") as f:
-        pickle.dump([otsu_mask_12,otsu_mask_17,otsu_mask_19,otsu_mask_29], f)
-    control_mask_12 = utils.make_ring_by_scaling(otsu_mask_12)
-    control_mask_17 = utils.make_ring_by_scaling(otsu_mask_17)
-    control_mask_19 = utils.make_ring_by_scaling(otsu_mask_19)
-    control_mask_29 = utils.make_ring_by_scaling(otsu_mask_29)
+        pickle.dump([otsu_mask_11,otsu_mask_18,otsu_mask_25,otsu_mask_27], f)
+    control_mask_11 = utils.make_ring_by_scaling(otsu_mask_11)
+    control_mask_18 = utils.make_ring_by_scaling(otsu_mask_18)
+    control_mask_25 = utils.make_ring_by_scaling(otsu_mask_25)
+    control_mask_27 = utils.make_ring_by_scaling(otsu_mask_27)
     control_path = os.path.join(pupa_folder, "control_masks.pkl")
     with open(control_path, "wb") as f:
-        pickle.dump([control_mask_12,control_mask_17,control_mask_19,control_mask_29], f)
+        pickle.dump([control_mask_11,control_mask_18,control_mask_25,control_mask_27], f)
     del no_min_frames
     print("Extraction of masks complete")
     print("Starting analysis of all recordings")
@@ -58,57 +58,53 @@ if __name__ == "__main__":
         mkv_file_path = os.path.join(recording_folder, f"{folder_name}.mkv")
         #extract frames from the video
         utils.extract_frames_from_mkv(mkv_path=mkv_file_path, temp_folder=temp_folder)
-        print("Extracted frames, saved to temp folder: ./temp_frames")
+        print("Extracted frames, saved to temp folder: ./temp_frames_folder")
         #load frames and process them
         frames = utils.load_frames_fast(frames_folder=temp_folder, delete_frames=True)
         print("Loaded frames shape:", frames.shape)
         masked_frames = frames[:, y:y+h, x:x+w]
         del frames
-        temporal_frames = utils.temporal_filter(masked_frames, HIGH_CUTOFF=30.0)
-        print("Applied temporal filter to frames")
+        reduced_frames = utils.reduce_frame(masked_frames, factor = 2)
         del masked_frames
-        reduced_frames = utils.reduce_frame(temporal_frames, factor = 2)
-        print("Applied reduction to frames")
-        del temporal_frames
-        print("Final frames shape:", reduced_frames.shape)
-        no_min_frames = utils.remove_baseline(reduced_frames, clip =False)
-        print("Applied baseline removal to frames")
+        temporal_frames = utils.temporal_filter(reduced_frames, high_cutoff=10.0)
         del reduced_frames
+        no_min_frames = utils.remove_baseline(temporal_frames, clip =False)
+        del temporal_frames
 
         #Get the trace of the masks for heart muscles
-        masked_frames_12 = np.multiply(no_min_frames, otsu_mask_12)
-        temporal_trace_mask12 = np.mean(masked_frames_12, axis=(1, 2))
-        masked_frames_17 = np.multiply(no_min_frames, otsu_mask_17)
-        temporal_trace_mask17 = np.mean(masked_frames_17, axis=(1, 2))
-        masked_frames_19 = np.multiply(no_min_frames, otsu_mask_19)
-        temporal_trace_mask19 = np.mean(masked_frames_19, axis=(1, 2))
-        masked_frames_29 = np.multiply(no_min_frames, otsu_mask_29)
-        temporal_trace_mask29 = np.mean(masked_frames_29, axis=(1, 2))
+        masked_frames_11 = np.multiply(no_min_frames, otsu_mask_11)
+        temporal_trace_mask11 = np.mean(masked_frames_11, axis=(1, 2))
+        masked_frames_18 = np.multiply(no_min_frames, otsu_mask_18)
+        temporal_trace_mask18 = np.mean(masked_frames_18, axis=(1, 2))
+        masked_frames_25 = np.multiply(no_min_frames, otsu_mask_25)
+        temporal_trace_mask25 = np.mean(masked_frames_25, axis=(1, 2))
+        masked_frames_27 = np.multiply(no_min_frames, otsu_mask_27)
+        temporal_trace_mask27 = np.mean(masked_frames_27, axis=(1, 2))
         #save the temporal traces to a file
-        save_name= os.path.join(recording_folder,f"temporal_muscle_traces_{recording_number}.pkl")
+        save_name= os.path.join(recording_folder,f"temporal_muscle_traces_{recording_number}_10Hz.pkl")
         with open(save_name, "wb") as f:
-            pickle.dump([temporal_trace_mask12, temporal_trace_mask17, temporal_trace_mask19, temporal_trace_mask29], f)
-        masked_frames_12 = np.multiply(no_min_frames, control_mask_12)
-        temporal_trace_controlmask12 = np.mean(masked_frames_12, axis=(1, 2))
-        masked_frames_17 = np.multiply(no_min_frames, control_mask_17)
-        temporal_trace_controlmask17 = np.mean(masked_frames_17, axis=(1, 2))
-        masked_frames_19 = np.multiply(no_min_frames, control_mask_19)
-        temporal_trace_controlmask19 = np.mean(masked_frames_19, axis=(1, 2))
-        masked_frames_29 = np.multiply(no_min_frames, control_mask_29)
-        temporal_trace_controlmask29 = np.mean(masked_frames_29, axis=(1, 2))
+            pickle.dump([temporal_trace_mask11, temporal_trace_mask18, temporal_trace_mask25, temporal_trace_mask27], f)
+        masked_frames_11 = np.multiply(no_min_frames, control_mask_11)
+        temporal_trace_controlmask11 = np.mean(masked_frames_11, axis=(1, 2))
+        masked_frames_18 = np.multiply(no_min_frames, control_mask_18)
+        temporal_trace_controlmask18 = np.mean(masked_frames_18, axis=(1, 2))
+        masked_frames_25 = np.multiply(no_min_frames, control_mask_25)
+        temporal_trace_controlmask25 = np.mean(masked_frames_25, axis=(1, 2))
+        masked_frames_27 = np.multiply(no_min_frames, control_mask_27)
+        temporal_trace_controlmask27 = np.mean(masked_frames_27, axis=(1, 2))
         #save the temporal traces of control masks to a file
-        save_name= os.path.join(recording_folder,f"temporal_control_traces_{recording_number}.pkl")
+        save_name= os.path.join(recording_folder,f"temporal_control_traces_{recording_number}_10Hz.pkl")
         with open(save_name, "wb") as f:
-            pickle.dump([temporal_trace_controlmask12, temporal_trace_controlmask17, temporal_trace_controlmask19, temporal_trace_controlmask29], f)    
+            pickle.dump([temporal_trace_controlmask11, temporal_trace_controlmask18, temporal_trace_controlmask25, temporal_trace_controlmask27], f)    
         
         components,W = utils.apply_nmf(
             no_min_frames,
             save=True,
             output_folder=recording_folder,
-            save_name=f"nmf{recording_number}_components.pkl",
+            save_name=f"nmf{recording_number}_components_10Hz.pkl",
             n_components=40,
             tol=5e-2,
-            max_iter=1500,
+            max_iter=500,
             alpha_H=1.0,
             plot=False,
             temporal=False)
