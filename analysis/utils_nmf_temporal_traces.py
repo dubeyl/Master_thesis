@@ -11,43 +11,6 @@ import subprocess
 import cv2
 import re
 
-## Not used here, but useful for pupa other than 10
-def crop_video_dynamic(frame, max_width=1000, max_height=800):
-    """
-    Allows the user to select an ROI interactively.
-    Resizes the frame if it's too large for the screen, but keeps original size for cropping.
-    """
-    frame = (frame - frame.min()) / (frame.max() - frame.min()) * 255  # Normalize
-    frame = frame.astype(np.uint8)
-
-    # Get original dimensions
-    orig_h, orig_w = frame.shape[:2]
-    
-    # Compute scaling factor
-    scale_w = max_width / orig_w
-    scale_h = max_height / orig_h
-    scale = min(scale_w, scale_h, 1)  # Scale down but not up
-
-    # Resize only for display
-    display_frame = cv2.resize(frame, (int(orig_w * scale), int(orig_h * scale)))
-
-    # Select ROI on resized image
-    x_scaled, y_scaled, w_scaled, h_scaled = cv2.selectROI(
-        "Select ROI", display_frame, showCrosshair=True, fromCenter=False
-    )
-
-    # Convert back to original coordinates
-    x, y, w, h = int(x_scaled / scale), int(y_scaled / scale), int(w_scaled / scale), int(h_scaled / scale)
-
-    print(f"Selected ROI : (x={x}, y={y}, w={w}, h={h})")
-
-    # Show cropped original-size frame
-    cv2.imshow("Cropped Image", frame[y:y+h, x:x+w])
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    return x, y, w, h
-
 def get_ordered_recording_paths(pupa_folder):
     """Get ordered recording paths based on the folder structure."""
     pattern = re.compile(r"recording(\d+)_\d{8}_\d{4}")
@@ -92,18 +55,17 @@ def load_frames_fast(frames_folder, delete_frames=True):
         shutil.rmtree(frames_folder)
     return frames
 
-def lowpass_filter(data, high_cutoff=40.0, fs=80, order=2):
-    """Apply a Butterworth low-pass filter."""
-    nyquist = 0.5 * fs
-    high = min(high_cutoff / nyquist, 0.99)
-    
-    b, a = butter(order, high, btype='low', analog=False)
-    return filtfilt(b, a, data)
-
-def temporal_filter(frames, HIGH_CUTOFF=40.0, FRAME_RATE=80, FILTER_ORDER=2):
-    """Apply low-pass filtering to keep relevant muscle movements."""
-    return np.array([lowpass_filter(frame.flatten(), HIGH_CUTOFF, FRAME_RATE, FILTER_ORDER).reshape(frame.shape).astype(np.float32)
-                     for frame in frames])
+def temporal_filter(frames, high_cutoff=40.0, fs=80.0, order=3):
+    """Apply a Butterworth low‑pass filter along the time axis of a 3D stack."""
+    # Design filter in normalized frequency (Nyquist = fs/2)
+    nyq = 0.5 * fs
+    normal_cutoff = min(high_cutoff / nyq, 0.99)
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    frames.astype(np.float32)  # Ensure float for filtering
+    # filtfilt can operate along a specified axis.
+    # axis=0 means “time” (n_frames dimension), preserving H×W structure.
+    filtered = filtfilt(b, a, frames, axis=0).astype(np.float32)
+    return filtered
 
 def reduce_frame(frames: np.ndarray, factor: int = 2) -> np.ndarray:
     """
@@ -332,4 +294,4 @@ def make_ring_by_scaling(mask, scale=2.0):
 
     # subtract the original mask to leave a ring
     ring = cv2.subtract(ring, mask)
-    return ring
+    return ring 
