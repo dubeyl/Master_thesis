@@ -23,7 +23,7 @@ if __name__ == "__main__":
     utils.extract_frames_from_mkv(mkv_path=mkv_file_path, temp_folder=temp_folder)
     print("Extraction of frames complete")
     os.makedirs(mcorr_folder, exist_ok=True)
-    utils.apply_motion_correction(temp_folder=temp_folder, mcorr_folder=mcorr_folder)
+    utils.apply_motion_correction(orig_folder=temp_folder, mcorr_folder=mcorr_folder)
     frames = utils.load_frames_fast(frames_folder=mcorr_folder, delete_frames=True)
     masked_frames = frames[:, y:y+h, x:x+w]
     del frames
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         utils.extract_frames_from_mkv(mkv_path=mkv_file_path, temp_folder=temp_folder)
         print("Extracted frames, saved to temp folder: ./temp_frames_folder")
         os.makedirs(mcorr_folder, exist_ok=True)
-        utils.apply_motion_correction(temp_folder=temp_folder, mcorr_folder=mcorr_folder)
+        utils.apply_motion_correction(orig_folder=temp_folder, mcorr_folder=mcorr_folder)
         #load frames and process them
         frames = utils.load_frames_fast(frames_folder=mcorr_folder, delete_frames=True)
         print("Loaded frames shape:", frames.shape)
