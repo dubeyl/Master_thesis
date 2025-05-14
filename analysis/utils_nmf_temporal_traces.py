@@ -299,7 +299,7 @@ def make_ring_by_scaling(mask, scale=2.0):
     ring = cv2.subtract(ring, mask)
     return ring 
 
-def apply_motion_correction(orig_folder, mcorr_folder, delete = True):
+def apply_motion_correction(orig_folder, mcorr_folder, delete = True, offset_x = 0, offset_y = 0, correction = 0):
     def find_landmark(image: np.ndarray,
                   landmark: np.ndarray,
                   search_bbox: Optional[Tuple[Tuple[int, int], Tuple[int, int]]] = None,
@@ -452,7 +452,7 @@ def apply_motion_correction(orig_folder, mcorr_folder, delete = True):
         ref_image = tifffile.imread(ref_frame_path)
         h, w = ref_image.shape
         crop_size = 400
-        y0, x0 = h - int(crop_size*1.5), w // 2 - crop_size // 2
+        y0, x0 = h - int(crop_size*1.5) +offset_y, w // 2 - crop_size // 2 + offset_x
         landmark = ref_image[y0:y0+crop_size, x0:x0+crop_size]
         assert (0 < landmark.shape[0] < h
                 and 0 < landmark.shape[1] < w), (
@@ -477,7 +477,7 @@ def apply_motion_correction(orig_folder, mcorr_folder, delete = True):
             top_left, score = find_landmark(img, landmark)
             if score > 0.7:
                 dy = y0 - top_left[0]
-                dx = x0 - top_left[1]
+                dx = x0 - top_left[1] - correction
                 # Apply translation
                 M = np.float32([[1, 0, dx], [0, 1, dy]])
                 aligned = cv2.warpAffine(img, M, (w_img, h_img), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
@@ -502,3 +502,13 @@ def apply_motion_correction(orig_folder, mcorr_folder, delete = True):
         shutil.rmtree(orig_folder)
 
     
+def fractional_threshold(component, fraction=0.2):
+    # Normalize to 0–255
+    comp = component.astype(np.float32)
+    comp = 255 * (comp - comp.min()) / (comp.max() - comp.min())
+    comp = comp.astype(np.uint8)
+
+    # Apply threshold at specified fraction
+    thresh_val = int(comp.max() * fraction)
+    _, mask = cv2.threshold(comp, thresh_val, 255, cv2.THRESH_BINARY)
+    return mask
