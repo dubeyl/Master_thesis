@@ -1,0 +1,7 @@
+/home/nely/flymuscle-control/cpp/CMakeFiles/record_parallel_no_track.dir
+/home/nely/flymuscle-control/cpp/CMakeFiles/record_parallel_io.dir
+/home/nely/flymuscle-control/cpp/CMakeFiles/calibrate.dir
+/home/nely/flymuscle-control/cpp/CMakeFiles/old.dir
+/home/nely/flymuscle-control/cpp/CMakeFiles/simple.dir
+/home/nely/flymuscle-control/cpp/CMakeFiles/edit_cache.dir
+/home/nely/flymuscle-control/cpp/CMakeFiles/rebuild_cache.dir
