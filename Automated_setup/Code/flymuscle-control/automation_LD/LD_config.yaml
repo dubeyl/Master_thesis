@@ -1,0 +1,23 @@
+########### General
+overwrite : False
+
+
+########### Summary muscle
+folders_muscle: ['/mnt/nvme_disk/output/Automated_recording_LD']
+default_muscle_video_framerate : 100 #360/4
+framerate_reduction_factor_muscle : 1
+summary_speed_factor_muscle : 0.4
+scale_global: True
+
+########### Base folder (same as folders_muscle)
+base_folder: /mnt/nvme_disk/output/Automated_recording_LD
+
+########### Output folder
+output_folder: /mnt/upramdya_data/LD/experiments/imaging/output/Automated_recording_LD
+
+#Leandre pupa arena
+
+#ImageX0: 128 #864
+#ImageY0: 224 #690
+#ImageWidth: 1024 #640
+#ImageHeight: 704 #384
