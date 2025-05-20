@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/nely/flymuscle-control/cpp/src",
+  "command": "/usr/bin/c++ -DPCO_LINUX -DYAML_CPP_STATIC_DEFINE -I/home/nely/flymuscle-control/cpp/src/../../include -isystem /usr/include/opencv4 -std=gnu++17 -o CMakeFiles/record_parallel_no_track.dir/record_parallel_no_track.cpp.o -c /home/nely/flymuscle-control/cpp/src/record_parallel_no_track.cpp",
+  "file": "/home/nely/flymuscle-control/cpp/src/record_parallel_no_track.cpp"
+}
+]

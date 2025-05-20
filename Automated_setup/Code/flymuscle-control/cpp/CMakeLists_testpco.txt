@@ -1,0 +1,84 @@
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
+project("pco_camera" VERSION 3.2.0 DESCRIPTION "pco.camera" LANGUAGES CXX)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+
+# link rpath
+set(CMAKE_BUILD_RPATH "\$ORIGIN;\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+
+# pco_include dir with platform check
+set (RECORDERLIB pco_recorder)
+set (XCITELIB etc_xcite)
+if (UNIX)
+    set(SDKLIB pco_sc2cam)
+    set(CONVERTLIB pco_convert)
+elseif(WIN32)
+    set(SDKLIB sc2_cam)
+    set(CONVERTLIB pco_conv)
+    # set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+else()
+    message(FATAL_ERROR "platform not supported")
+endif()
+
+# general defines
+if (UNIX)
+    add_compile_definitions(PCO_LINUX)
+endif (UNIX)
+
+# Library toolchain
+set(PCOCAMERA_DIR ${CMAKE_SOURCE_DIR}/pco.camera)
+
+set(PCOCAMERA_HEADERS
+    ${PCOCAMERA_DIR}/stdafx.h
+    ${PCOCAMERA_DIR}/defs.h
+    ${PCOCAMERA_DIR}/cameraexception.h
+    ${PCOCAMERA_DIR}/image.h
+    ${PCOCAMERA_DIR}/camera.h
+    ${PCOCAMERA_DIR}/xcite.h
+)
+
+set(PCOCAMERA_SOURCES
+    ${PCOCAMERA_DIR}/cameraexception.cpp
+    ${PCOCAMERA_DIR}/image.cpp
+    ${PCOCAMERA_DIR}/camera.cpp
+    ${PCOCAMERA_DIR}/xcite.cpp
+    ${PCOCAMERA_DIR}/stdafx.cpp
+)
+
+# samples
+add_subdirectory(src)
+
+
+include(GNUInstallDirs)
+
+# copy dependencies
+install(FILES
+    ${PCOCAMERA_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+set(PCO_SOURCE_DIR /opt/pco/pco.cpp/)
+
+if(WIN32)
+  file(GLOB SDK_BINARIES "${CMAKE_SOURCE_DIR}/bin/*.dll")
+  file(GLOB SDK_LIBRARIES "${CMAKE_SOURCE_DIR}/lib/*.lib")
+  file(COPY "${CMAKE_SOURCE_DIR}/bin/genicam" DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/bin/genicam" DESTINATION ${CMAKE_INSTALL_BINDIR})
+elseif(UNIX)
+  file(GLOB SDK_LIBRARIES "${PCO_SOURCE_DIR}/lib/*.so.*.*.*")
+  file(COPY "${PCO_SOURCE_DIR}/lib/genicam" DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+  install(DIRECTORY "${PCO_SOURCE_DIR}/lib/genicam" DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
+
+file(COPY ${SDK_BINARIES} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+file(COPY ${SDK_LIBRARIES} DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+install(FILES ${SDK_BINARIES} DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES ${SDK_LIBRARIES} DESTINATION ${CMAKE_INSTALL_LIBDIR})

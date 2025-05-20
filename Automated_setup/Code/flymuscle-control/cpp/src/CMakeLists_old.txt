@@ -1,0 +1,82 @@
+cmake_minimum_required(VERSION 3.1)
+project(grabn)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-Wall -g")
+
+# Find system packages
+find_package(Threads REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_library(ZML_LIBRARY NAMES zaber-motion)
+
+# Set PCO base path
+set(PCO_BASE "/opt/pco")
+
+# Include directories
+include_directories(
+    "${PCO_BASE}/pco.cpp/include"
+	"${PCO_BASE}/pco.cpp/pco.camera"
+	)
+
+# Link the necessary PCO libraries explicitly
+# Find all PCO libraries
+file(GLOB PCO_LIBS
+    "${PCO_BASE}/pco.cpp/lib/*.so*"
+	)
+
+#list(REMOVE_ITEM PCO_LIBS "${PCO_BASE}/pco.cpp/lib/libpcocom_kaya.so")
+#list(REMOVE_ITEM PCO_LIBS "${PCO_BASE}/pco.cpp/lib/libpcocom_kaya.so.2")
+#list(REMOVE_ITEM PCO_LIBS "${PCO_BASE}/pco.cpp/lib/libpcocom_kaya.so.2.1.24")
+
+file(GLOB_RECURSE EXTRA_SOURCES "${PCO_BASE}/pco.cpp/pco.camera/*.cpp")
+
+# Automatically find all .cpp files in the utils directory
+file(GLOB UTILS_SOURCES "utils/*")
+
+# Define PCO_LINUX for Linux builds
+add_definitions(-DPCO_LINUX)
+
+# Add executable and link libraries
+add_executable(record_parallel_no_track record_parallel_no_track.cpp ${UTILS_SOURCES})
+target_sources(record_parallel_no_track PRIVATE ${EXTRA_SOURCES})
+target_link_libraries(
+	record_parallel_no_track
+	yaml-cpp 
+	${PCO_LIBS}
+	${OpenCV_LIBS} 
+	${CMAKE_THREAD_LIBS_INIT}
+	${ZML_LIBRARY} 
+	)
+
+# Repeat the pattern for other executables
+add_executable(record_parallel_io record_parallel_io.cpp ${UTILS_SOURCES})
+target_sources(record_parallel_io PRIVATE ${EXTRA_SOURCES})
+target_link_libraries(
+	record_parallel_io 
+	yaml-cpp 
+	${OpenCV_LIBS} 
+	${PCO_LIBS} 
+	${ZML_LIBRARY} 
+	${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(calibrate calibrate.cpp ${UTILS_SOURCES})
+target_sources(calibrate PRIVATE ${EXTRA_SOURCES})
+target_link_libraries(
+	calibrate 
+	yaml-cpp 
+	${OpenCV_LIBS} 
+	${PCO_LIBS} 
+	${ZML_LIBRARY} 
+	${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(old old.cpp)
+target_sources(old PRIVATE ${EXTRA_SOURCES})
+target_link_libraries(old ${OpenCV_LIBS} ${PCO_LIBS})
+
+
+add_executable(simple simple.cpp)
+target_sources(simple PRIVATE ${EXTRA_SOURCES})
+target_link_libraries(simple ${OpenCV_LIBS} ${PCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+

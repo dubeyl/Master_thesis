@@ -1,0 +1,33 @@
+set(PROJECT_NAME record_parallel_no_track)
+set(PROJECT_SOURCES
+    /home/nely/flymuscle-control/cpp/src/record_parallel_no_track.cpp
+)
+
+find_package(Threads REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_library(ZML_LIBRARY NAMES zaber-motion)
+
+add_definitions(-DPCO_LINUX)
+
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+# include dependencies
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+
+# library dependencies
+target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${SDKLIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RECORDERLIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CONVERTLIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${XCITELIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${ZML_LIBRARY})
+
+
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
